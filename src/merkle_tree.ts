@@ -16,17 +16,6 @@ type Options = {
   chunks: number
 }
 
-const chunks = <T>(chunkSize: number, data: T[]): T[][] => {
-  const result: T[][] = []
-
-  for (let i = 0; i < data.length; i += chunkSize) {
-    const chunk = data.slice(i, i + chunkSize)
-    result.push(chunk)
-  }
-
-  return result
-}
-
 const hash = (value: string): string =>
   crypto.createHash("sha256").update(value).digest("hex")
 
@@ -34,7 +23,7 @@ const buildTreeFromNodes = (nodes: MerkleeNode[]): MerkleeTree => {
   let remainingNodes: MerkleeNode[] = nodes
 
   while (remainingNodes.length > 1) {
-    remainingNodes = chunks(2, remainingNodes).map(([left, right]) => ({
+    remainingNodes = array.chunks(2, remainingNodes).map(([left, right]) => ({
       left,
       right,
       value: hash(`${left.value}${right.value}`),
@@ -45,13 +34,13 @@ const buildTreeFromNodes = (nodes: MerkleeNode[]): MerkleeTree => {
 }
 
 export const make = (data: string, options?: Options): MerkleeTree => {
-  const nodes: MerkleeNode[] = chunks(options?.chunks ?? 4, data.split("")).map(
-    chunk => ({
+  const nodes: MerkleeNode[] = array
+    .chunks(options?.chunks ?? 4, data.split(""))
+    .map(chunk => ({
       left: null,
       right: null,
       value: hash(chunk.join("")),
-    })
-  )
+    }))
 
   if (!number.isEven(nodes.length)) {
     nodes.push(array.last(nodes))
